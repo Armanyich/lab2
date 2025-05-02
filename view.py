@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
+import random
 from model import TemperatureMeasurement, HumidityMeasurement
+
 
 class MeasurementView:
     """Графический интерфейс для отображения измерений."""
@@ -37,10 +39,12 @@ class MeasurementView:
         self.add_button = tk.Button(self.root, text="Добавить")
         self.delete_button = tk.Button(self.root, text="Удалить")
         self.load_button = tk.Button(self.root, text="Загрузить")
+        self.color_button = tk.Button(self.root, text="Сменить цвет", bg="lightgray", command=self.toggle_color)
 
         self.add_button.grid(row=1, column=0)
         self.delete_button.grid(row=1, column=1)
         self.load_button.grid(row=1, column=2)
+        self.color_button.grid(row=1, column=3)
 
         self.tree = ttk.Treeview(
             self.root, columns=("date", "place", "value", "type"), show="headings"
@@ -54,6 +58,14 @@ class MeasurementView:
         scrollbar = ttk.Scrollbar(self.root, orient="vertical", command=self.tree.yview)
         self.tree.configure(yscroll=scrollbar.set)
         scrollbar.grid(row=2, column=8, sticky="ns")
+
+    def toggle_color(self):
+        random_color = "#{:02x}{:02x}{:02x}".format(
+            random.randint(0, 255),
+            random.randint(0, 255),
+            random.randint(0, 255)
+        )
+        self.color_button.configure(bg=random_color)
 
     def get_input_data(self):
         return {
@@ -72,4 +84,4 @@ class MeasurementView:
             self.tree.insert("", "end", values=m.to_list() + [self._get_measurement_type(m)])
 
     def _get_measurement_type(self, measurement):
-        return "Температура" if isinstance(m, TemperatureMeasurement) else "Влажность"
+        return "Температура" if isinstance(measurement, TemperatureMeasurement) else "Влажность"

@@ -1,8 +1,8 @@
 from datetime import datetime
 from model import MeasurementModel, TemperatureMeasurement, HumidityMeasurement
-from datetime import datetime
 from tkinter import filedialog
 from view import MeasurementView
+
 
 class MeasurementController:
     """Контроллер для управления моделью и представлением."""
@@ -25,7 +25,6 @@ class MeasurementController:
                 measurement = TemperatureMeasurement(date, data["place"], data["value"])
             else:
                 measurement = HumidityMeasurement(date, data["place"], data["value"])
-            
             self.model.add_measurement(measurement)
             self.view.update_tree(self.model.measurements)
         except ValueError as e:

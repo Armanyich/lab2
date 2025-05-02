@@ -1,6 +1,6 @@
 from datetime import datetime
 import re
-from tkinter import messagebox, filedialog
+from tkinter import messagebox
 
 
 class Measurement:
