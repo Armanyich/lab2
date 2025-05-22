@@ -5,8 +5,6 @@ from view import MeasurementView
 
 
 class MeasurementController:
-    """Контроллер для управления моделью и представлением."""
-
     def __init__(self, root):
         self.model = MeasurementModel()
         self.view = MeasurementView(root)

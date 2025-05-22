@@ -1,11 +1,15 @@
 from datetime import datetime
 import re
 from tkinter import messagebox
+from log_utils import logger
+
+
+class InvalidMeasurementError(Exception):
+    """Исключение для некорректных строк измерений."""
+    pass
 
 
 class Measurement:
-    """Базовый класс измерения."""
-
     def __init__(self, date, place, value):
         self.date = date
         self.place = place
@@ -16,62 +20,49 @@ class Measurement:
 
 
 class TemperatureMeasurement(Measurement):
-    """Температурное измерение."""
-
     def __init__(self, date, place, value):
         super().__init__(date, place, float(value))
 
 
 class HumidityMeasurement(Measurement):
-    """Измерение влажности."""
-
     def __init__(self, date, place, value):
         super().__init__(date, place, int(value))
 
 
 class MeasurementParser:
-    """Парсинг строки в измерение."""
-
     @staticmethod
     def parse(line):
-        if "температуры" in line.lower():
-            measurement_type = "Температура"
-        elif "влажности" in line.lower():
-            measurement_type = "Влажность"
-        else:
-            print(f"Неизвестный тип измерения в строке: {line.strip()}")
-            return None
-
-        date_match = re.search(r'\d{4}\.\d{2}\.\d{2}', line)
-        if not date_match:
-            print(f"Не найдена дата в строке: {line.strip()}")
-            return None
-
-        line_parts = line[date_match.start():].strip().split()
-        if len(line_parts) < 3:
-            print(f"Недостаточно данных в строке: {line.strip()}")
-            return None
-
         try:
+            if "температуры" in line.lower():
+                measurement_type = "Температура"
+            elif "влажности" in line.lower():
+                measurement_type = "Влажность"
+            else:
+                raise InvalidMeasurementError(f"Неизвестный тип измерения: {line.strip()}")
+
+            date_match = re.search(r'\d{4}\.\d{2}\.\d{2}', line)
+            if not date_match:
+                raise InvalidMeasurementError(f"Дата не найдена в строке: {line.strip()}")
+
+            line_parts = line[date_match.start():].strip().split()
+            if len(line_parts) < 3:
+                raise InvalidMeasurementError(f"Недостаточно данных: {line.strip()}")
+
             date = datetime.strptime(line_parts[0], "%Y.%m.%d").date()
             place = line_parts[1].strip('"')
-            value = line_parts[2]
-            
-            if measurement_type == "Влажность" and '%' in value:
-                value = value.replace('%', '')
+            value = line_parts[2].replace('%', '') if '%' in line_parts[2] else line_parts[2]
 
             if measurement_type == "Температура":
                 return TemperatureMeasurement(date, place, value)
-            elif measurement_type == "Влажность":
+            else:
                 return HumidityMeasurement(date, place, value)
-        except ValueError as e:
-            print(f"Ошибка обработки строки '{line.strip()}': {e}")
+
+        except (ValueError, InvalidMeasurementError) as e:
+            logger.error(f"Ошибка обработки строки: {line.strip()} — {e}")
             return None
 
 
 class MeasurementStorage:
-    """Работа с файлом измерений."""
-
     @staticmethod
     def load_from_file(filename):
         measurements = []
@@ -89,8 +80,6 @@ class MeasurementStorage:
 
 
 class MeasurementModel:
-    """Модель данных измерений."""
-
     def __init__(self):
         self.measurements = []
 
